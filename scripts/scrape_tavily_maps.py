@@ -10,10 +10,9 @@ the 2024 chaos map from 建築現場の知恵袋 was.
 import logging
 import os
 
+from common import JsonlWriter, output_path
 from dotenv import load_dotenv
 from tavily import TavilyClient
-
-from common import JsonlWriter, output_path
 
 logger = logging.getLogger(__name__)
 

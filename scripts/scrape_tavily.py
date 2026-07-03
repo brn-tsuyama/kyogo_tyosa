@@ -10,10 +10,9 @@ import logging
 import os
 import time
 
+from common import JsonlWriter, output_path
 from dotenv import load_dotenv
 from tavily import TavilyClient
-
-from common import JsonlWriter, output_path
 
 logger = logging.getLogger(__name__)
 

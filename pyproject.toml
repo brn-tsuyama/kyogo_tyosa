@@ -41,6 +41,9 @@ ignore = [
     "ANN",     # relax annotations in tests
     "D",       # relax docstrings in tests
 ]
+"scripts/*.py" = [
+    "INP001",  # standalone scripts by design, not an importable package
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

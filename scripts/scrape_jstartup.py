@@ -11,7 +11,6 @@ from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
-
 from common import JsonlWriter, output_path
 
 logger = logging.getLogger(__name__)

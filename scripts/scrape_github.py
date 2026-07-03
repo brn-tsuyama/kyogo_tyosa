@@ -11,9 +11,8 @@ import time
 from typing import Any
 
 import requests
-from dotenv import load_dotenv
-
 from common import JsonlWriter, output_path
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 

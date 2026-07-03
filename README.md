@@ -30,18 +30,22 @@ there instead of being retried).
 
 ## Scripts
 
-Each script is a standalone entry point (`uv run <script>.py`), writing timestamped
-JSONL into `data/raw/<source>/`:
+The scrapers live in `scripts/` and share `scripts/common.py` (JSONL writer, output
+path helper). Each is a standalone entry point (`uv run scripts/<script>.py`, run from
+the repo root), writing timestamped JSONL into `data/raw/<source>/`:
 
 | Script | Discovers |
 |---|---|
-| `scrape_jstartup.py` | J-Startup (METI-certified startup) directory listing |
-| `scrape_github.py` | GitHub orgs/repos tagged with construction-tech topics (low signal — mostly global OSS projects, see `sources.yaml`) |
-| `scrape_tavily.py` | Keyword-sweep search for individual companies |
-| `scrape_tavily_maps.py` | Meta-search for other people's chaos maps / comparison round-ups |
+| `scripts/scrape_jstartup.py` | J-Startup (METI-certified startup) directory listing |
+| `scripts/scrape_github.py` | GitHub orgs/repos tagged with construction-tech topics (low signal — mostly global OSS projects, see `sources.yaml`) |
+| `scripts/scrape_tavily.py` | Keyword-sweep search for individual companies |
+| `scripts/scrape_tavily_maps.py` | Meta-search for other people's chaos maps / comparison round-ups |
+
+`build_master_list.py` and `write_research_to_excel.py` stay at the repo root — they
+orchestrate across the whole `data/` tree rather than collecting from one source.
 
 `data/curated/*.jsonl` holds hand-transcribed entries from curated compilations found
-via `scrape_tavily_maps.py` or supplied directly by the user.
+via `scripts/scrape_tavily_maps.py` or supplied directly by the user.
 
 `build_master_list.py` merges every `data/curated/*.jsonl` and the latest
 `data/raw/jstartup/*.jsonl` into one deduplicated, priority-ranked candidate list
