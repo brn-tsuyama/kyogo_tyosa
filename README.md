@@ -10,6 +10,10 @@ uv sync
 cp .env.example .env   # fill in TAVILY_API_KEY, optionally GITHUB_TOKEN
 ```
 
+`data/` is gitignored — a fresh clone has none of the collected research (curated
+JSONL, raw scrape dumps, `data/master_candidates.json`, or the `競合分析*.xlsx`
+reports). The pipeline below has to be re-run to regenerate it.
+
 ## Source tracking
 
 `sources.yaml` is the index of every source considered for this research, split into:
@@ -41,22 +45,22 @@ the repo root), writing timestamped JSONL into `data/raw/<source>/`:
 | `scripts/scrape_tavily.py` | Keyword-sweep search for individual companies |
 | `scripts/scrape_tavily_maps.py` | Meta-search for other people's chaos maps / comparison round-ups |
 
-`build_master_list.py` and `write_research_to_excel.py` stay at the repo root — they
-orchestrate across the whole `data/` tree rather than collecting from one source.
-
 `data/curated/*.jsonl` holds hand-transcribed entries from curated compilations found
 via `scripts/scrape_tavily_maps.py` or supplied directly by the user.
 
-`build_master_list.py` merges every `data/curated/*.jsonl` and the latest
-`data/raw/jstartup/*.jsonl` into one deduplicated, priority-ranked candidate list
-(`data/master_candidates.json`), cross-referencing `data/report/競合分析.xlsx` so
-already-profiled companies aren't re-researched.
+`build_master_list.py` and `write_research_to_excel.py` stay at the repo root (rather
+than in `scripts/`) since they orchestrate across the whole `data/` tree instead of
+collecting from one source. `build_master_list.py` merges every `data/curated/*.jsonl`
+and the latest `data/raw/jstartup/*.jsonl` into one deduplicated, priority-ranked
+candidate list (`data/master_candidates.json`), cross-referencing
+`data/report/競合分析.xlsx` so already-profiled companies aren't re-researched.
 
 ## Competitor profiling
 
-Candidates from `data/master_candidates.json` get researched (via WebSearch, in
-batches) into JSON records matching the schema below, saved under
-`data/report/batches/*.json`:
+There's no single script for this step — it's done by an AI agent (this repo was
+built working with Claude) researching each `data/master_candidates.json` candidate
+via web search, in batches, and writing the results as JSON matching the schema below
+into `data/report/batches/*.json`:
 
 ```json
 {
