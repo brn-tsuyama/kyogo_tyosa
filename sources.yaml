@@ -1,0 +1,198 @@
+# 建設会社向けソフトウェア企業 調査ソース管理
+# auto:   自動収集(スクレイピング)を検討できるソース(要ToS再確認)
+# manual: ToS制限・有料DB・ログイン必須などで手動収集が必要なソース
+#
+# status: not_started | in_progress | done
+last_updated: 2026-07-01
+
+auto:
+  # --- 発見用ソース(企業名を新規に見つける) ---
+  - name: PR TIMES
+    url: https://prtimes.jp/
+    type: press_release
+    access_method: html
+    status: not_started
+    notes: >
+      「建設DX」「建設テック」等のキーワード・業界タグ検索で
+      新興企業のプレスリリースを収集。
+
+  - name: Japan Build / 建設DX展 (RX Japan主催展示会)
+    url: https://www.japan-build.jp/
+    type: exhibitor_list
+    access_method: html
+    status: not_started
+    notes: >
+      出展社一覧は静的HTMLではなくAlgolia検索(公開用APIキーで動くフロントエンド)で
+      駆動されており、インデックス名がミニファイJSの中で動的生成されていて
+      特定に手間がかかる。費用対効果を見て後回し(J-Startup等を先に処理)。
+      robots.txtでは directory.html 自体は禁止されていない。
+
+  - name: J-Startup (経済産業省認定スタートアッププログラム)
+    url: https://www.j-startup.go.jp/startups/
+    type: startup_program
+    access_method: html
+    status: done
+    notes: >
+      robots.txtなし・全266社が1ページに静的HTMLで並ぶため単純スクレイピングで完了。
+      業種カテゴリに「建設」はないため、社名・カテゴリでのキーワード後処理が必要
+      (例: ArchiTek株式会社がヒット)。scrape_jstartup.py で実装済み、
+      data/raw/jstartup/ に出力。
+
+  - name: NEDO 採択企業・プロジェクト一覧
+    url: https://www.nedo.go.jp/
+    type: government_program
+    access_method: html
+    status: not_started
+    notes: >
+      建設・インフラDX関連の研究開発助成の採択企業一覧から
+      技術特化のプレイヤーを発掘する。
+
+  - name: J-PlatPat (特許情報プラットフォーム)
+    url: https://www.j-platpat.inpit.go.jp/
+    type: patent_database
+    access_method: html
+    status: not_started
+    notes: >
+      BIM/CIM・施工管理・建機IoT等のFタームで特許検索し、
+      出願人(企業)を洗い出す。独立行政法人INPIT運営の公的サービス。
+      大量取得したい場合は特許庁の「標準技術集」等オープンデータ配布も確認。
+
+  - name: GitHub (Organization / Repository検索)
+    url: https://github.com/
+    type: code_hosting
+    access_method: api
+    status: not_started
+    notes: >
+      REST/GraphQL APIで "construction" "BIM" "CIM" "建設" 等をトピック検索。
+      認証済みAPIはレート制限内であれば利用規約上問題なし。
+      疎通テスト済み(scrape_github.py)だが、ヒットの大半はFreeCAD/Dynamo等の
+      世界的OSSプロジェクトで、日本の中小建設ソフトベンダーとは相性が悪いと判明。
+      優先度を下げて保留。GITHUB_TOKEN未設定だとowner裏取りが60req/hで極めて遅い点も課題。
+
+  - name: Tavily Search API (キーワードスイープ)
+    url: https://tavily.com/
+    type: search_api
+    access_method: api
+    status: not_started
+    notes: >
+      公式検索API。無料枠は月1,000クレジット・クレジットカード登録不要
+      (Brave APIはカード必須、Google Custom Searchは新規登録不可のため除外)。
+      ITreview等の比較サイトに載らない長尾の中小・新興ベンダーを、
+      キーワードの掛け合わせで発掘する狙い。
+      例: "{建設|工事|施工} {管理|DX|SaaS} {中小企業向け|新規参入|スタートアップ}"
+      検索結果は本文抽出込みで返るため、企業候補の抽出は後処理(人力/Claude)で行う。
+
+  # --- 裏取り・補完用ソース(見つけた企業の一次情報を確認) ---
+  - name: 法人番号公表サイト (国税庁)
+    url: https://www.houjin-bangou.nippon.web.go.jp/
+    type: open_data_api
+    access_method: api
+    status: not_started
+    notes: >
+      法人番号システムWeb-APIあり。法人名・所在地の一次データ取得に使える。
+      業種(建設向けソフトウェア)での絞り込みは別ソースと突合が必要。
+
+  - name: gBizINFO (経済産業省 法人活動情報)
+    url: https://info.gbiz.go.jp/
+    type: open_data_api
+    access_method: api
+    status: not_started
+    notes: >
+      法人番号を軸に、資本金・認定情報・補助金採択歴・特許等を横断取得できる
+      公式オープンデータAPI。他ソースで見つけた企業の裏取り・属性補完に使う。
+
+curated:
+  # 第三者がすでに整理・分類済みの一覧(カオスマップ等)。都度スクレイピングする対象ではなく、
+  # 見つけ次第このセクションに記録し、企業名・URLだけ書き写してdata/curated/に保存する。
+  # 一覧そのもの(編集著作物)の転載はしない。
+  - name: 【建設業】DXツールカオスマップ2024年版 (建築現場の知恵袋 / 株式会社ケイ・ブリッジ)
+    url: https://gemba-pi.jp/blog/kensetsu-dx-chaosmap/
+    type: curated_compilation
+    status: done
+    notes: >
+      月間PV約24万の建設業界メディアが編集。6カテゴリ・125サービスをURL付きで掲載。
+      data/curated/chaosmap_2024_kenchikugenba.jsonl に企業名・URLを書き写し済み。
+      PR TIMES発信元記事: https://prtimes.jp/main/html/rd/p/000000001.000136851.html
+
+  - name: 建設業向けSaaSカオスマップ2026年版 (studio masho / アトリエ・バイナリ)
+    url: https://studio-masho.com/blog/construction-saas-chaos-map-2026
+    type: curated_compilation
+    status: done
+    notes: >
+      14カテゴリ・51ツール(特徴/料金帯/おすすめ規模つき)。
+      このサイトのrobots.txtはClaudeBotを名指しでDisallowしているため、
+      エージェントによる自動取得はせず、ユーザーが手動で閲覧し本文を貼ってもらう形で収集。
+      data/curated/chaosmap_2026_studio_masho.jsonl に書き写し済み。
+
+  - name: 建設業向けシステム16社比較 (建築現場の知恵袋)
+    url: https://gemba-pi.jp/blog/kensetu-system-hikaku/
+    type: curated_comparison
+    status: done
+    notes: >
+      施工管理システムに特化した比較記事。タイトルは16社だが本文確認できたのは15社
+      (比較表13社+本文個別紹介2社)。特徴・料金帯つき。
+      data/curated/kensetsu_system_hikaku_gemba_pi.jsonl に書き写し済み。
+
+manual:
+  - name: ITreview
+    url: https://www.itreview.jp/
+    type: saas_review_site
+    status: not_started
+    reason: 利用規約でスクレイピング等の自動収集を禁止
+    notes: "「建設業界向け」カテゴリを手動で一覧化する。"
+
+  - name: BOXIL SaaS
+    url: https://boxil.jp/
+    type: saas_review_site
+    status: not_started
+    reason: 利用規約でスクレイピング等の自動収集を禁止
+    notes: カテゴリ「建設」等で絞り込み、手動収集。
+
+  - name: ITトレンド
+    url: https://it-trend.jp/
+    type: saas_review_site
+    status: not_started
+    reason: 利用規約でスクレイピング等の自動収集を禁止
+    notes: ""
+
+  - name: INITIAL
+    url: https://initial.inc/
+    type: funding_database
+    status: not_started
+    reason: 有料データベース。契約範囲外の自動収集はToS違反の可能性
+    notes: 契約プランがあれば正規のエクスポート機能を利用する。
+
+  - name: Speeda
+    url: https://www.speeda.com/
+    type: funding_database
+    status: not_started
+    reason: 有料データベース。契約範囲外の自動収集はToS違反の可能性
+    notes: ""
+
+  - name: 日経クロステック
+    url: https://xtech.nikkei.com/
+    type: trade_media
+    status: not_started
+    reason: 会員限定記事あり・利用規約により自動収集不可
+    notes: 建設IT関連の特集記事から企業名を手動収集。
+
+  - name: LinkedIn
+    url: https://www.linkedin.com/
+    type: company_directory
+    status: not_started
+    reason: 利用規約で自動収集を明確に禁止
+    notes: 企業ページ・従業員プロフィールから事業内容を手動確認。
+
+  - name: X (Twitter)
+    url: https://x.com/
+    type: social_media
+    status: not_started
+    reason: 利用規約で自動収集を明確に禁止。プログラムアクセスは有料API契約が必要(未契約)
+    notes: 建設テック界隈のアカウント・投稿を人力で確認。
+
+  - name: Instagram
+    url: https://www.instagram.com/
+    type: social_media
+    status: not_started
+    reason: 利用規約で自動収集を明確に禁止。公式APIはビジネスアカウント連携が前提で用途が合わない
+    notes: 展示会・施工事例の投稿から企業を人力で確認。
